@@ -1,4 +1,4 @@
-# Git Workflow & Branching Model
+# Devsphere - Git Workflow & Branching Model
 
 This repository uses a **feature-branch workflow** with protected `main` and `develop` branches and PR-based merging. This guide defines how branches are created, how code moves through environments, and how releases are cut.
 

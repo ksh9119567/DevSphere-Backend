@@ -14,10 +14,10 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="FastAPI Blog", lifespan=lifespan)
+app = FastAPI(title="DevSphere", lifespan=lifespan)
 
 app.include_router(api_router)
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to FastAPI Blog!"}
+    return {"message": "Welcome to DevSphere!"}
