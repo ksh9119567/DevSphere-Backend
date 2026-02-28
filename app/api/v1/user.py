@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import delete
+from sqlalchemy.exc import IntegrityError
 from passlib.hash import bcrypt
 
 from app.models import models 
@@ -18,7 +19,11 @@ async def create_user(request: schemas.UserCreate, db: AsyncSession= Depends(get
     hashed_pwd = bcrypt.hash(request.password)
     new_user = models.User(username=request.username, email=request.email, password=hashed_pwd)
     db.add(new_user)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Email already registered")
     await db.refresh(new_user)
     return new_user
 
@@ -50,7 +55,11 @@ async def update_user(user_id: int,
     user.username = request.username
     user.email = request.email
     user.password = hashed_pwd
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Email already in use")
     await db.refresh(user)
     return user
 
@@ -64,7 +73,11 @@ async def update_current_user(request: schemas.UserCreate,
     current_user.username = request.username
     current_user.email = request.email
     current_user.password = hashed_pwd
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Email already in use")
     await db.refresh(current_user)
     return current_user
 

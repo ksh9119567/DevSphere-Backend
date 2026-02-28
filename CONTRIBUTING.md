@@ -1,6 +1,6 @@
-# Contributing Guidelines
+# Contributing to Devsphere
 
-Thank you for your interest in contributing to this project!  
+Thank you for your interest in contributing to Devsphere!  
 This document outlines the workflow, branching strategy, pull request rules, code review standards, and commit conventions we follow to maintain a clean and professional codebase.
 
 ---

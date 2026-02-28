@@ -1,6 +1,6 @@
-# 🛠️ Project Setup Guide (Windows, Linux, macOS)
+# 🛠️ Devsphere - Setup Guide (Windows, Linux, macOS)
 
-This guide explains how to set up and run the **FastAPI Blog Platform** on any operating system.
+This guide explains how to set up and run **Devsphere** on any operating system.
 
 ---
 
@@ -21,7 +21,7 @@ Ensure the following are installed:
 
 ```bash
 git clone <REPO_URL>
-cd blog-app
+cd devsphere
 ```
 
 > Replace `<REPO_URL>` with your repository link
@@ -33,10 +33,10 @@ cd blog-app
 Create a `.env` file in the project root with required variables:
 
 ```
-DATABASE_URL=postgresql+asyncpg://blog_user:blog1234@db:5432/blog_db
-POSTGRES_USER=blog_user
-POSTGRES_PASSWORD=blog1234
-POSTGRES_DB=blog_db
+DATABASE_URL=postgresql+asyncpg://devsphere_user:devsphere1234@db:5432/devsphere_db
+POSTGRES_USER=devsphere_user
+POSTGRES_PASSWORD=devsphere1234
+POSTGRES_DB=devsphere_db
 
 REDIS_URL=redis://redis:6379/0
 
@@ -115,10 +115,10 @@ uvicorn app.main:app --reload
 
 | Task | Command |
 |--------|------------|
-| View logs | `docker logs -f blog_app` |
-| Enter container shell | `docker exec -it blog_app bash` |
-| Access PostgreSQL | `docker exec -it blog_postgres psql -U blog_user -d blog_db` |
-| Access Redis | `docker exec -it blog_redis redis-cli` |
+| View logs | `docker logs -f devsphere_app` |
+| Enter container shell | `docker exec -it devsphere_app bash` |
+| Access PostgreSQL | `docker exec -it devsphere_postgres psql -U devsphere_user -d devsphere_db` |
+| Access Redis | `docker exec -it devsphere_redis redis-cli` |
 
 ---
 

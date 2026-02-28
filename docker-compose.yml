@@ -3,7 +3,7 @@ version: '3.9'
 services:
   db:
     image: postgres:15
-    container_name: blog_postgres
+    container_name: devsphere_postgres
     restart: always
     env_file: .env
     ports:
@@ -18,7 +18,7 @@ services:
 
   redis:
     image: redis:7
-    container_name: blog_redis
+    container_name: devsphere_redis
     restart: always
     ports:
       - "6379:6379"
@@ -30,7 +30,7 @@ services:
       
   web:
     build: .
-    container_name: blog_app
+    container_name: devsphere_app
     restart: always
     depends_on:
       db:
