@@ -15,7 +15,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://blog_user:blog1234@db:5432/blog_db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://devsphere_user:devsphere1234@localhost:5432/devsphere_db")
 
 # Convert async URL -> sync for Alembic
 sync_db_url = DATABASE_URL.replace("postgresql+asyncpg", "postgresql")
