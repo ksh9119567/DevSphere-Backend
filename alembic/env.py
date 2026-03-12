@@ -6,7 +6,9 @@ from alembic import context
 from dotenv import load_dotenv
 
 from app.db.database import Base
-from app.models.models import *
+from app.modules.users.models import User
+from app.modules.blogs.models import Blog
+from app.modules.activity.models import ActivityLog
 
 load_dotenv()
 

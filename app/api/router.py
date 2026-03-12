@@ -1,15 +1,6 @@
 from fastapi import APIRouter
+from .v1.router import router as v1_router
 
-from app.api.v1 import (
-    blog,
-    user,
-    auth,
-)
+router = APIRouter()
 
-# Root Router
-api_router = APIRouter(prefix="/api")
-
-# Include Individual Routers
-api_router.include_router(blog.router, prefix="/blogs", tags=["Blogs"])
-api_router.include_router(user.router, prefix="/users", tags=["Users"])
-api_router.include_router(auth.router, tags=["Authentication"])
+router.include_router(v1_router, prefix="/v1")
