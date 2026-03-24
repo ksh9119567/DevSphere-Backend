@@ -27,7 +27,17 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-      
+  
+  celery:
+    build: .
+    container_name: devsphere_celery
+    restart: always
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file: .env
+    command: ["celery", "-A", "app.core.celery.celery", "worker", "--loglevel=info"]
+
   web:
     build: .
     container_name: devsphere_app

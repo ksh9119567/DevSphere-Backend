@@ -1,6 +1,7 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import List, Optional
 from uuid import UUID
+from datetime import datetime
 
 from app.modules.blogs.schemas import BlogResponse
 
@@ -13,27 +14,23 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     email: EmailStr
     password: str
+    is_email_verified: bool = False
 
 class UserInfo(UserBase):
     is_email_verified: bool
     is_admin: bool
     is_active: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserResponse(UserInfo):
     id: UUID
     email: EmailStr
     blogs: List[BlogResponse] = []
-    created_at: Optional[str]
-    updated_at: Optional[str]
+    created_at: datetime
+    updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserCreateResponse(BaseModel):
     user: UserResponse
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
