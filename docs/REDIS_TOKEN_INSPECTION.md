@@ -1,8 +1,8 @@
-# Redis Token Inspection Script
+# Redis Token & Cache Inspection Script
 
 ## Overview
 
-The `inspect_redis_data.py` script is a utility tool designed to inspect and retrieve all access and refresh tokens stored in Redis along with their associated metadata. This is useful for debugging authentication issues, monitoring active sessions, and understanding token lifecycle management.
+The `inspect_redis_data.py` script is a utility tool designed to inspect and retrieve all access tokens, refresh tokens, and cached data stored in Redis along with their associated metadata. This is useful for debugging authentication issues, monitoring active sessions, understanding token lifecycle management, and verifying cache effectiveness.
 
 ## Purpose
 
@@ -11,7 +11,10 @@ This script helps you:
 - Check token metadata (user email, user ID, admin status, email verification status)
 - Monitor token expiration times (TTL - Time To Live)
 - Identify expired or invalid tokens
+- View cached blog and user data
+- Monitor cache hit/miss patterns
 - Debug authentication and session-related issues
+- Verify cache effectiveness
 
 ## How It Works
 
@@ -20,6 +23,13 @@ This script helps you:
 Tokens are stored in Redis with the following key patterns:
 - **Access Tokens**: `access_token:{user_email}`
 - **Refresh Tokens**: `refresh_token:{user_email}`
+- **OTP Codes**: `otp:{user_email}`
+
+Cached data is stored with patterns:
+- **Blog Cache**: `blog:{blog_id}`
+- **User Cache**: `user:{user_id}`
+- **Blog Lists**: `blog:list:*`
+- **User Lists**: `user:list:*`
 
 Each token is stored as a JSON object containing:
 ```json
@@ -32,6 +42,8 @@ Each token is stored as a JSON object containing:
   "is_email_verified": true
 }
 ```
+
+Each cached item is stored as a JSON object containing the entity data.
 
 ### Script Functions
 
@@ -101,7 +113,7 @@ python scripts/inspect_redis_data.py delete
 ```
 
 This command will:
-1. Count all access and refresh tokens in Redis
+1. Count all access tokens, refresh tokens, and OTP codes in Redis
 2. Display a warning showing how many tokens will be deleted
 3. Prompt you to type "DELETE" to confirm
 4. Delete all tokens if confirmed
@@ -124,6 +136,7 @@ REDIS TOKEN INSPECTION REPORT
 SUMMARY:
   Total Access Tokens: 2
   Total Refresh Tokens: 2
+  Total OTP Codes: 1
 
 --------------------------------------------------------------------------------
 ACCESS TOKENS:
@@ -178,6 +191,7 @@ If a user reports authentication problems, use this script to verify:
 - Whether their token exists in Redis
 - If the token has expired
 - If their user metadata is correctly stored
+- If their OTP code is still valid
 
 ### 3. Monitor Token Expiration
 Check TTL values to understand when tokens will expire and plan for token refresh operations.
@@ -188,7 +202,10 @@ Confirm which users have admin privileges by checking the `Is Admin` field.
 ### 5. Troubleshoot Token Mismatches
 If you suspect token corruption or mismatches, this script helps identify malformed token data.
 
-### 6. Clear All Sessions
+### 6. Check Email Verification Status
+Verify which users have completed email verification by checking the `Email Verified` field.
+
+### 7. Clear All Sessions
 Use the delete command to log out all users at once:
 ```bash
 python scripts/inspect_redis_data.py delete
@@ -198,6 +215,22 @@ This is useful for:
 - Clearing stale sessions after a deployment
 - Testing authentication flows
 - Resetting the system to a clean state
+
+### 8. Inspect Cache Data
+Use Redis CLI to inspect cached blogs and users:
+```bash
+# View all blog cache keys
+redis-cli KEYS "blog:*"
+
+# View all user cache keys
+redis-cli KEYS "user:*"
+
+# Get specific blog cache
+redis-cli GET blog:550e8400-e29b-41d4-a716-446655440000
+
+# Check cache TTL
+redis-cli TTL blog:550e8400-e29b-41d4-a716-446655440000
+```
 
 ## Error Handling
 
@@ -230,8 +263,9 @@ python scripts/inspect_redis_data.py inspect
 ## Related Documentation
 
 - See `ACTIVITY_TRACKING.md` for user activity tracking
+- See `REDIS_CACHING.md` for Redis caching layer documentation
 - See `SETUP.md` for environment configuration
-- See `app/core/security.py` for token creation and validation logic
+- See `AUTHENTICATION_FLOW.md` for authentication and OTP flow details
 
 ## Troubleshooting
 

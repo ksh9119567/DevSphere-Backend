@@ -62,7 +62,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         logger.warning(f"Access token mismatch for user: {email}")
         raise credentials_exception
 
-    user = await UserRepository.get_user_by_email(db, email)
+    user_repo = UserRepository(db)
+    user = await user_repo.get_user_by_email(email)
     if user is None:
         logger.warning(f"User not found in database: {email}")
         raise credentials_exception

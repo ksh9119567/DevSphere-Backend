@@ -85,6 +85,7 @@ class ActivityTrackingMiddleware(BaseHTTPMiddleware):
         # Log activity asynchronously
         try:
             async with AsyncSessionLocal() as db:
+                activity_service = ActivityService(db)
                 activity_data = ActivityLogCreate(
                     user_email=user_email,
                     endpoint=endpoint,
@@ -97,9 +98,8 @@ class ActivityTrackingMiddleware(BaseHTTPMiddleware):
                     response_time_ms=response_time_ms,
                     action_description=self._get_action_description(method, endpoint),
                 )
-                await ActivityService.log_activity(
+                await activity_service.log_activity(
                     request=activity_data,
-                    db=db,
                 )
         except Exception as e:
             logger.error(f"Failed to log activity in middleware: {str(e)}")

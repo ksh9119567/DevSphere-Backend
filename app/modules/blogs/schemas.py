@@ -1,7 +1,8 @@
 import uuid
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
+from datetime import datetime
 
 
 class BlogBase(BaseModel):
@@ -12,8 +13,7 @@ class BlogBase(BaseModel):
 class BlogResponse(BlogBase):
     id: uuid.UUID
     user_id: Optional[uuid.UUID]
-    created_at: Optional[str]
-    updated_at: Optional[str]
+    created_at: datetime
+    updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

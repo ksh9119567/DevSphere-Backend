@@ -1,0 +1,8 @@
+Hello,
+
+Welcome to DevSphere! Your account has been successfully created.
+
+If you did not request this, please ignore the email.
+
+Regards,
+Team DevSphere

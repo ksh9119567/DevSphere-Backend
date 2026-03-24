@@ -1,0 +1,10 @@
+Hello,
+
+Your One-Time Password (OTP) is: {otp}
+
+This OTP is valid for the next 5 minutes.
+
+If you did not request this, please ignore the email.
+
+Regards,
+Team DevSphere

@@ -2,7 +2,7 @@
 
 ## Overview
 
-DevSphere implements a **JWT-based authentication system** with Redis token storage, role-based access control, and comprehensive activity tracking. The system uses a dual-token approach (access tokens and refresh tokens) to balance security and user experience.
+DevSphere implements a **JWT-based authentication system** with email OTP verification, Redis token storage, role-based access control, and comprehensive activity tracking. The system uses a dual-token approach (access tokens and refresh tokens) combined with email OTP for enhanced security.
 
 ## Architecture Overview
 
@@ -37,10 +37,20 @@ DevSphere implements a **JWT-based authentication system** with Redis token stor
 The core service handling authentication operations:
 
 - **Login**: Validates credentials and creates tokens
+- **Email OTP**: Sends and verifies one-time passwords
 - **Refresh**: Issues new tokens using refresh token
 - **Logout**: Revokes tokens from Redis
 
-### 2. Token Service (`app/services/token_service.py`)
+### 2. Email OTP Service (`app/services/email_otp_service.py`)
+
+Manages email-based OTP verification:
+
+- **Generate OTP**: Creates random 6-digit OTP
+- **Send OTP**: Sends OTP via email using Celery
+- **Verify OTP**: Validates OTP and marks email as verified
+- **OTP Storage**: Stores OTP in Redis with TTL (default 10 minutes)
+
+### 3. Token Service (`app/services/token_service.py`)
 
 Manages JWT token creation and validation:
 
@@ -49,7 +59,7 @@ Manages JWT token creation and validation:
 - **Token Storage**: Both tokens stored in Redis with metadata
 - **Token Verification**: Validates JWT signature and Redis presence
 
-### 3. Security Module (`app/core/security.py`)
+### 4. Security Module (`app/core/security.py`)
 
 Provides security utilities:
 
@@ -58,15 +68,23 @@ Provides security utilities:
 - **Current User Dependency**: FastAPI dependency for protected endpoints
 - **Token Validation**: Checks JWT validity and Redis presence
 
-### 4. User Repository (`app/core/repositories/user_repository.py`)
+### 5. User Repository (`app/core/repositories/user_repository.py`)
 
 Database operations for user management:
 
 - User creation, retrieval, and updates
 - Filters for active and non-deleted users
 - Email-based user lookup
+- Email verification status tracking
 
-### 5. Redis Manager (`app/core/redis_manager.py`)
+### 6. Redis Manager (`app/core/redis_manager.py`)
+
+Manages Redis connection and token storage:
+
+- Async Redis client initialization
+- Token persistence with TTL
+- Token retrieval and deletion
+- OTP storage and retrieval
 
 Manages Redis connection and token storage:
 

@@ -26,13 +26,16 @@ async def get_all_tokens():
         # Get all keys matching token patterns
         access_token_keys = await redis_client.keys("access_token:*")
         refresh_token_keys = await redis_client.keys("refresh_token:*")
+        otp_keys = await redis_client.keys("otp:*")
         
         tokens_data = {
             "access_tokens": [],
             "refresh_tokens": [],
+            "otp_codes": [],
             "summary": {
                 "total_access_tokens": len(access_token_keys),
-                "total_refresh_tokens": len(refresh_token_keys)
+                "total_refresh_tokens": len(refresh_token_keys),
+                "total_otp_codes": len(otp_keys)
             }
         }
         
@@ -107,6 +110,7 @@ async def display_tokens():
     print(f"\nSUMMARY:")
     print(f"  Total Access Tokens: {tokens_data['summary']['total_access_tokens']}")
     print(f"  Total Refresh Tokens: {tokens_data['summary']['total_refresh_tokens']}")
+    print(f"  Total OTP Codes: {tokens_data['summary']['total_otp_codes']}")
     
     # Access Tokens
     print(f"\n{'-'*80}")
@@ -157,8 +161,9 @@ async def delete_all_tokens():
         # Get all keys matching token patterns
         access_token_keys = await redis_client.keys("access_token:*")
         refresh_token_keys = await redis_client.keys("refresh_token:*")
+        otp_keys = await redis_client.keys("otp:*")
         
-        total_keys = len(access_token_keys) + len(refresh_token_keys)
+        total_keys = len(access_token_keys) + len(refresh_token_keys) + len(otp_keys)
         
         if total_keys == 0:
             print("No tokens found to delete.")
@@ -168,6 +173,7 @@ async def delete_all_tokens():
         print(f"\nWARNING: You are about to delete {total_keys} tokens:")
         print(f"  - {len(access_token_keys)} access tokens")
         print(f"  - {len(refresh_token_keys)} refresh tokens")
+        print(f"  - {len(otp_keys)} OTP codes")
         print("\nThis action cannot be undone. All users will be logged out.")
         
         confirmation = input("\nType 'DELETE' to confirm: ").strip()
@@ -187,9 +193,15 @@ async def delete_all_tokens():
             await redis_client.delete(key)
             deleted_count += 1
         
+        # Delete OTP codes
+        for key in otp_keys:
+            await redis_client.delete(key)
+            deleted_count += 1
+        
         print(f"\n✓ Successfully deleted {deleted_count} tokens from Redis")
         print(f"  - {len(access_token_keys)} access tokens deleted")
         print(f"  - {len(refresh_token_keys)} refresh tokens deleted")
+        print(f"  - {len(otp_keys)} OTP codes deleted")
         
     except Exception as e:
         print(f"Error deleting tokens: {str(e)}")
@@ -219,13 +231,13 @@ async def main():
 def print_help():
     """Print help message with available commands."""
     help_text = """
-Redis Token Inspection Script
+Redis Token & Cache Inspection Script
 
 Usage: python scripts/inspect_redis_data.py [COMMAND]
 
 Commands:
-  inspect    Display all access and refresh tokens (default)
-  delete     Delete all access and refresh tokens from Redis
+  inspect    Display all access tokens, refresh tokens, and OTP codes (default)
+  delete     Delete all access tokens, refresh tokens, and OTP codes from Redis
   help       Show this help message
 
 Examples:
@@ -233,6 +245,12 @@ Examples:
   python scripts/inspect_redis_data.py inspect
   python scripts/inspect_redis_data.py delete
   python scripts/inspect_redis_data.py help
+
+Note: This script inspects authentication tokens and OTP codes stored in Redis.
+For cache inspection (blogs, users), use Redis CLI directly:
+  redis-cli KEYS "blog:*"
+  redis-cli KEYS "user:*"
+  redis-cli GET blog:123
     """
     print(help_text)
 
