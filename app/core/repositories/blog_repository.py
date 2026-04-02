@@ -67,3 +67,18 @@ class BlogRepository(BaseRepository):
         await self.soft_delete(blog, {"is_deleted": True})
 
         logger.info(f"Blog deleted successfully: {blog.id}")
+        
+    async def delete_all_blogs(self, user_id: int) -> None:
+        logger.debug(f"Deleting all blogs for user_id: {user_id}")
+
+        query = select(Blog).filter(
+            Blog.user_id == user_id,
+            Blog.is_deleted == False
+        )
+
+        blogs = await self.get_all(query)
+
+        for blog in blogs:
+            await self.soft_delete(blog, {"is_deleted": True})
+            
+        logger.info(f"All blogs deleted successfully for user_id: {user_id}")

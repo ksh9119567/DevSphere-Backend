@@ -17,3 +17,12 @@ class BlogResponse(BlogBase):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+    
+    
+class BlogCreateResponse(BaseModel):
+    blog: BlogResponse
+    task_id: Optional[str] = None
+    
+class BlogUpdateResponse(BaseModel):
+    blog: BlogResponse
+    task_id: Optional[str] = None

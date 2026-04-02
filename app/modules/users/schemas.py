@@ -11,10 +11,12 @@ class UserBase(BaseModel):
     profile_image: Optional[str] = None
     profile_bio: Optional[str] = None
 
+
 class UserCreate(UserBase):
     email: EmailStr
     password: str
     is_email_verified: bool = False
+
 
 class UserInfo(UserBase):
     is_email_verified: bool
@@ -22,6 +24,7 @@ class UserInfo(UserBase):
     is_active: bool
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class UserResponse(UserInfo):
     id: UUID
@@ -32,5 +35,12 @@ class UserResponse(UserInfo):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class UserCreateResponse(BaseModel):
     user: UserResponse
+    task_id: Optional[str] = None
+
+
+class UserUpdateResponse(BaseModel):
+    user : UserResponse
+    task_id: Optional[str] = None

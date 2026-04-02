@@ -1,11 +1,11 @@
 import logging
 
 from app.events.events.blog_events import (
-    BlogCreatedEvent, BlogUpdatedEvent, BlogDeletedEvent
+    BlogCreatedEvent, BlogUpdatedEvent, BlogDeletedEvent, AllBlogDeletedEvent
 )
 from app.tasks.blog_task import (
     send_blog_created_email_task, send_blog_updated_email_task, 
-    send_blog_deleted_email_task
+    send_blog_deleted_email_task, send_all_blogs_deleted_email_task
 )
 
 logger = logging.getLogger(__name__)
@@ -39,4 +39,14 @@ def handle_blog_deleted(event: BlogDeletedEvent) -> dict:
         return {"task_id": task_result.id, "event_type": "account_deletion_email"}
     except Exception as e:
         logger.error(f"Failed to queue account deletion email task: {str(e)}")
+        raise
+    
+def handle_all_blog_deleted(event: AllBlogDeletedEvent) -> dict:
+    """Handle all blogs deleted event and return task ID."""
+    try:
+        task_result = send_all_blogs_deleted_email_task.delay(event.email)
+        logger.info(f"All blogs deletion email task queued with ID: {task_result.id}")
+        return {"task_id": task_result.id, "event_type": "all_blogs_deletion_email"}
+    except Exception as e:
+        logger.error(f"Failed to queue all blogs deletion email task: {str(e)}")
         raise

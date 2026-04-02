@@ -1,6 +1,6 @@
 import logging
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -28,6 +28,7 @@ class ActivityService(BaseService):
                 request_body=request.request_body, response_body=request.response_body, 
                 response_time_ms=request.response_time_ms, action_description=request.action_description,
                 error_message=request.error_message,
+                timestamp=datetime.now(timezone.utc)
             )
             self.db.add(activity)
             await self.db.commit()
