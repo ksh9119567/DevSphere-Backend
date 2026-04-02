@@ -103,6 +103,7 @@ class ActivityTrackingMiddleware(BaseHTTPMiddleware):
                 )
         except Exception as e:
             logger.error(f"Failed to log activity in middleware: {str(e)}")
+            # Don't raise - let the request continue even if logging fails
 
         # Add response headers for tracking
         response.headers["X-Response-Time"] = str(response_time_ms)

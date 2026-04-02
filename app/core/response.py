@@ -34,7 +34,6 @@ class ApiResponse(BaseModel):
 def success_response(
     message: str,
     data: Any = None,
-    task_id: Optional[str] = None
 ) -> dict:
     """
     Create a success response.
@@ -42,7 +41,6 @@ def success_response(
     Args:
         message: Success message
         data: Response data (can be any type)
-        task_id: Optional async task ID
     
     Returns:
         Dictionary with standardized response format
@@ -51,7 +49,6 @@ def success_response(
         "message": message,
         "data": data,
         "status": "success",
-        "task_id": task_id
     }
 
 

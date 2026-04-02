@@ -36,6 +36,13 @@ async def logout(current_user: User = Depends(get_current_user),
     logger.info(f"User {current_user.email} is attempting to log out")
     return await auth_service.logout(current_user.email)
 
+@router.post("/token")
+async def token(request: OAuth2PasswordRequestForm = Depends(), 
+                auth_service: AuthService = Depends(get_auth_service)):
+    """Endpoint for token generation (for Swagger UI)"""
+    logger.info(f"Token endpoint called for email: {request.username}")
+    response = await auth_service.login(request.username, request.password)
+    return response["data"]
 
 #---------------------------------------
 # Email verification and Email otp login

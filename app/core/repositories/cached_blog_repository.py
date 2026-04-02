@@ -158,3 +158,7 @@ class CachedBlogRepository:
     async def delete_blog(self, blog: Blog) -> None:
         """Delete a blog. Write operation - no caching."""
         return await self.blog_repo.delete_blog(blog)
+    
+    async def delete_all_blogs(self, user_id: Union[str, uuid.UUID]) -> None:
+        """Delete all blogs for a user. Write operation - no caching."""
+        return await self.delete_all_blogs(user_id)

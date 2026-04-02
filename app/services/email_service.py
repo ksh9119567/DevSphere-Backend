@@ -130,3 +130,13 @@ def send_blog_deleted_email(recipient_email: str) -> bool:
 
     logger.info(f"Sending blog deleted email to {recipient_email}")
     return send_email(subject, text, html, recipient_email)
+
+def send_all_blogs_deleted_email(recipient_email: str) -> bool:
+    subject = 'All your blogs have been deleted'
+
+    # Load templates
+    text = load_template("all_blogs_deleted.txt")
+    html = load_template("all_blogs_deleted.html")
+
+    logger.info(f"Sending all blogs deleted email to {recipient_email}")
+    return send_email(subject, text, html, recipient_email)

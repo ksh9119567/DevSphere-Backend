@@ -8,13 +8,10 @@ from .schemas import BlogBase
 from app.core.exception import NotFoundException
 from app.core.repositories.user_repository import UserRepository
 from app.core.repositories.cached_blog_repository import CachedBlogRepository
-from app.core.response import success_response
 from app.services.base_service import BaseService
 from app.events import event_dispatcher
 from app.events.events.blog_events import (
-    BlogCreatedEvent,
-    BlogUpdatedEvent,
-    BlogDeletedEvent,
+    BlogCreatedEvent, BlogUpdatedEvent, BlogDeletedEvent, AllBlogDeletedEvent,
 )
 
 logger = logging.getLogger(__name__)
@@ -67,7 +64,7 @@ class BlogService(BaseService):
             task_id = dispatch_result[0].get("task_id")
         
         logger.info(f"Blog created with id={blog.id}")
-        return success_response("Blog created successfully", blog, task_id)
+        return {"blog": blog, "task_id": task_id}
 
     async def get_user_blogs(self, user_id: Union[str, uuid.UUID]) -> list[Blog]:
         """
@@ -85,7 +82,7 @@ class BlogService(BaseService):
         if not blogs:
             raise NotFoundException("Blogs")
 
-        return success_response("Blogs found successfully", blogs)
+        return blogs
 
     async def get_all_blogs(self) -> list[Blog]:
         """
@@ -100,7 +97,7 @@ class BlogService(BaseService):
         if not blogs:
             raise NotFoundException("Blogs")
 
-        return success_response("Blogs found successfully", blogs)
+        return blogs
 
     async def get_blog(self, blog_id: Union[str, uuid.UUID], user_id: Union[str, uuid.UUID]) -> Blog:
         """
@@ -113,7 +110,7 @@ class BlogService(BaseService):
         blog = await self.blog_repo.get_user_blog_by_id(blog_id, user_id)
         await self.get_or_404(blog, "Blog")
         
-        return success_response("Blog found successfully", blog)
+        return blog
 
     async def update_blog(
         self, 
@@ -151,7 +148,7 @@ class BlogService(BaseService):
             task_id = dispatch_result[0].get("task_id")
         
         logger.info(f"Blog updated: {blog_id}")
-        return success_response("Blog updated successfully", updated_blog, task_id)
+        return {"blog": updated_blog, "task_id": task_id}
 
     async def delete_blog(
         self, 
@@ -185,4 +182,16 @@ class BlogService(BaseService):
             task_id = dispatch_result[0].get("task_id")
         
         logger.info(f"Blog deleted: {blog_id}")
-        return success_response("Blog deleted successfully", task_id=task_id)
+        return {"task_id": task_id}
+    
+    async def delete_all_blogs(self, user_id: Union[str, uuid.UUID]):
+        await self.blog_repo.delete_all_blogs(user_id)
+        dispatch_result = await event_dispatcher.dispatch(
+            AllBlogDeletedEvent(blog_id=None, user_id=user_id)
+        )
+        task_id = None
+        if dispatch_result and len(dispatch_result) > 0:
+            task_id = dispatch_result[0].get("task_id")
+            
+        logger.info(f"All blogs deleted for user_id={user_id}")
+        return {"task_id": task_id}

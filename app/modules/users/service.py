@@ -10,7 +10,6 @@ from .schemas import UserCreate, UserBase
 
 from app.core.exception import ValidationException
 from app.core.repositories.cached_user_repository import CachedUserRepository
-from app.core.response import success_response
 from app.services.base_service import BaseService
 from app.events import event_dispatcher
 from app.events.events.user_events import UserRegisteredEvent, UserUpdatedEvent, UserDeletedEvent
@@ -58,19 +57,19 @@ class UserService(BaseService):
         )
 
         try:
-            response = await self.user_repo.create_user(new_user)
+            user = await self.user_repo.create_user(new_user)
 
             # Dispatch event for cache invalidation and email notification
             dispatch_result = await event_dispatcher.dispatch(
-                UserRegisteredEvent(email=request.email, user_id=response.id)
+                UserRegisteredEvent(email=request.email, user_id=user.id)
             )
             task_id = None
             if dispatch_result and len(dispatch_result) > 0:
                 task_id = dispatch_result[0].get("task_id")
             
-            logger.info(f"User created with id={response.id}")
-            return success_response("User created successfully", response, task_id)
-
+            logger.info(f"User created with id={user.id}")
+            return {"user": user, "task_id": task_id}
+        
         except SQLAlchemyError as e:
             logger.warning(f"Database error creating user: {request.email} - {str(e)}")
             raise ValidationException("Email already in use")
@@ -88,7 +87,7 @@ class UserService(BaseService):
         if not users:
             raise ValidationException("No users found")
 
-        return success_response("Users found successfully", users)
+        return users
 
     async def get_user_by_id(self, user_id: Union[str, uuid.UUID]) -> User:
         """
@@ -101,7 +100,7 @@ class UserService(BaseService):
         user = await self.user_repo.get_user_by_id(user_id)
         await self.get_or_404(user, "User")
         
-        return success_response("User found successfully", user)
+        return user
 
     async def update_user(self, user_id: Union[str, uuid.UUID], request: UserBase) -> User:
         """
@@ -131,7 +130,7 @@ class UserService(BaseService):
                 task_id = dispatch_result[0].get("task_id")
             
             logger.info(f"User updated: {user_id}")
-            return success_response("User profile updated successfully", updated_user, task_id)
+            return {"user": updated_user, "task_id": task_id}
 
         except SQLAlchemyError as e:
             logger.warning(f"Database error updating user {user_id}: {str(e)}")
@@ -161,7 +160,7 @@ class UserService(BaseService):
                 task_id = dispatch_result[0].get("task_id")
             
             logger.info(f"User profile updated: {current_user.id}")
-            return success_response("User profile updated successfully", updated_user, task_id)
+            return {"user": updated_user, "task_id": task_id}
 
         except SQLAlchemyError as e:
             logger.warning(f"Database error updating profile for {current_user.email}: {str(e)}")
@@ -192,7 +191,7 @@ class UserService(BaseService):
             task_id = dispatch_result[0].get("task_id")
             
         logger.info(f"User deleted: {current_user.id}")
-        return success_response("User deleted successfully", task_id=task_id)
+        return {"task_id": task_id}
 
     async def delete_specific_user(self, user_id: Union[str, uuid.UUID]) -> str:
         """
@@ -220,4 +219,4 @@ class UserService(BaseService):
             task_id = dispatch_result[0].get("task_id")
             
         logger.info(f"User deleted: {user_id}")
-        return success_response("User deleted successfully", task_id=task_id)
+        return {"task_id": task_id}
