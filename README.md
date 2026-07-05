@@ -6,8 +6,9 @@
 DevSphere is a modern backend-driven platform designed to evolve from a
 blogging application into a **full Developer Publishing Ecosystem**.\
 It demonstrates advanced backend architecture, modular monolith design,
-authentication systems, caching, background processing, and
-production-ready infrastructure.
+authentication systems, email OTP verification, event-driven architecture,
+Redis caching, background processing with Celery, dependency injection,
+activity tracking, and production-ready infrastructure.
 
 ------------------------------------------------------------------------
 
@@ -78,8 +79,12 @@ DevSphere follows a **Modular Domain-Oriented Monolith** architecture.
   Migrations                   Alembic
   Cache                        Redis
   Auth                         JWT (Access + Refresh Tokens)
+  Email OTP                    Email-based OTP verification
+  Background Tasks             Celery + Redis
+  Event System                 Event-driven architecture
+  Dependency Injection         FastAPI Depends pattern
+  Activity Tracking            Comprehensive request logging
   Containerization             Docker & Docker Compose
-  Background Tasks (Planned)   Celery / Dramatiq
   Storage (Planned)            MinIO / AWS S3
   Search (Planned)             PostgreSQL FTS / ElasticSearch
   Realtime (Planned)           WebSockets + Redis Pub/Sub
@@ -88,25 +93,47 @@ DevSphere follows a **Modular Domain-Oriented Monolith** architecture.
 
 # 🔐 Authentication & Security
 
--   JWT-based authentication
+-   JWT-based authentication with email OTP verification
 -   Access & Refresh token flow
 -   Refresh tokens stored in Redis
+-   Email OTP for secure login and registration
 -   Role-Based Access Control (User & Admin)
 -   Scoped API keys (planned)
 -   Rate limiting (planned)
 -   Production-ready token revocation
+-   Comprehensive activity tracking and logging
 
 ------------------------------------------------------------------------
 
 # 🚀 Current Features
 
--   User registration & management
+-   User registration & management with email OTP verification
 -   Blog CRUD with ownership protection
 -   Admin-only controls
--   JWT login, refresh & logout
+-   JWT login, refresh & logout with email OTP
 -   Dockerized multi-container environment
 -   PostgreSQL + Redis integration
 -   Alembic migration management
+-   Dependency Injection pattern across all modules
+-   Event-driven architecture with event dispatching
+-   Celery integration for background tasks
+-   Redis caching layer for blogs and users
+-   Comprehensive activity tracking and logging
+-   Email notifications via Celery tasks
+
+------------------------------------------------------------------------
+
+# 📚 Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+- **[FEATURES.md](docs/FEATURES.md)** - Complete feature documentation
+- **[SETUP.md](docs/SETUP.md)** - Setup and installation guide
+- **[AUTHENTICATION_FLOW.md](docs/AUTHENTICATION_FLOW.md)** - JWT and OTP authentication
+- **[REDIS_CACHING.md](docs/REDIS_CACHING.md)** - Caching layer documentation
+- **[ACTIVITY_TRACKING.md](docs/ACTIVITY_TRACKING.md)** - Activity logging system
+- **[REDIS_TOKEN_INSPECTION.md](docs/REDIS_TOKEN_INSPECTION.md)** - Token inspection tools
+- **[GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md)** - Git branching strategy
 
 ------------------------------------------------------------------------
 
@@ -143,14 +170,17 @@ DevSphere follows a **Modular Domain-Oriented Monolith** architecture.
 
 ## Release 3.0 -- Background & Analytics
 
--   Celery integration
--   Email notifications
+-   ✅ Celery integration for background tasks
+-   ✅ Email notifications via Celery
+-   ✅ Event-driven architecture
+-   ✅ Activity tracking and logging
 -   Engagement analytics
--   Event-driven architecture
+-   Advanced event handlers
 
 ## Release 4.0 -- Infrastructure & Scale
 
--   Redis caching layers
+-   ✅ Redis caching layers
+-   ✅ Dependency Injection pattern
 -   Search implementation
 -   Object storage (S3 compatible)
 -   Nginx reverse proxy
@@ -187,12 +217,15 @@ compatibility.
 DevSphere is not just a product --- it's a backend engineering
 laboratory to demonstrate:
 
--   Clean architecture
+-   Clean architecture with Dependency Injection
 -   Scalable data modeling
--   Event-driven systems
+-   Event-driven systems with event dispatching
 -   Modular monolith design
 -   Distributed system readiness
 -   Production hardening practices
+-   Redis caching and performance optimization
+-   Background task processing with Celery
+-   Comprehensive activity tracking and logging
 
 ------------------------------------------------------------------------
 

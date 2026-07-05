@@ -3,7 +3,7 @@ import uuid
 
 from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, DateTime, Float, Text, ForeignKey, Index
+from sqlalchemy import Column, Integer, String, DateTime, Float, Text, ForeignKey, Index, func
 
 from app.db.database import Base
 
@@ -23,7 +23,7 @@ class ActivityLog(Base):
     request_body = Column(Text, nullable=True)
     response_body = Column(Text, nullable=True)
     response_time_ms = Column(Float, nullable=False)
-    timestamp = Column(DateTime, default=datetime.now(timezone.utc), nullable=False, index=True)
+    timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
     action_description = Column(String(255), nullable=True)
     error_message = Column(Text, nullable=True)
 

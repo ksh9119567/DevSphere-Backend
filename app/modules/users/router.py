@@ -1,73 +1,103 @@
 import logging
 import uuid
 
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, Path
 
 from .models import User
-from .schemas import UserBase, UserCreate, UserResponse, UserCreateResponse
+from .schemas import (
+    UserCreate, UserCreateResponse, UserPrivateResponse, UserPublicResponse,
+    UserUpdate, UserListResponse
+)
 from .service import UserService
+from .dependency import get_user_service
 
-from app.db.database import get_db
-from app.core.security import get_current_admin_user, get_current_user
-from app.core.exception import PermissionDeniedException
+from app.core.schemas import StandardResponse
+from app.core.response import success_response
+from app.core.security import get_current_user
+from app.services.task_service import get_task_status, TaskStatusResponse
 
 router = APIRouter(prefix="/users", tags=["Users"])
 logger = logging.getLogger(__name__)
 
-
-@router.post("/create-user", response_model=UserCreateResponse)
+#---------------------------------------
+# User Creation and management endpoints
+#---------------------------------------
+# Both for admin and normal users
+@router.post("/create/user", response_model=StandardResponse[UserCreateResponse])
 async def create_user(request: UserCreate, 
-                      db: AsyncSession = Depends(get_db)):
+                      user_service: UserService = Depends(get_user_service)):
     logger.info(f"User creation requested for email: {request.email}")
-    return await UserService.create_user(request, db)
+    response = await user_service.create_user(request) 
+    return success_response("User created successfully", response["user"])
 
-@router.get("/admin/get-user/all", response_model=list[UserResponse])
-async def get_all_users(db: AsyncSession = Depends(get_db), 
-                        admin_user: User = Depends(get_current_admin_user)):
-    logger.info(f"Admin {admin_user.email} is fetching all users")
-    return await UserService.get_all_users(db)
+@router.get("/get/user/current", response_model=StandardResponse[UserPrivateResponse])
+async def get_current_user(user_service: UserService  = Depends(get_user_service),
+                           current_user: User = Depends(get_current_user)):
+    logger.info(f"User {current_user.email} is fetching their own details")
+    response = await user_service.get_user_by_id(current_user.id, current_user.is_admin)
+    return success_response("User fetched successfully", response)
 
-@router.get("/get-user/{user_id}", response_model=UserResponse)
-async def get_user(db: AsyncSession = Depends(get_db), 
-                   user_id: uuid.UUID = None, 
+@router.get("/get/user/{user_id}", response_model=StandardResponse[UserPublicResponse])
+async def get_user(user_id: uuid.UUID = None, 
+                   user_service: UserService = Depends(get_user_service),
                    current_user: User = Depends(get_current_user)):
-    if user_id and current_user.is_admin:
-        logger.info(f"Admin {current_user.email} is fetching user details for user_id: {user_id}")
-        return await UserService.get_user_by_id(user_id, db)
-    
-    elif user_id and not current_user.is_admin:
-        logger.warning(f"User {current_user.email} attempted to access user details for user_id: {user_id}")
-        raise PermissionDeniedException("Only admins can access other users' details")
-    
     logger.info(f"User {current_user.email} is fetching user details for user_id: {user_id}")
-    return current_user
+    response = await user_service.get_user_by_id(user_id, current_user.is_admin)
+    return success_response("User fetched successfully", response)
 
-@router.put("/admin/update-user/{user_id}", response_model=UserResponse)
-async def update_user(user_id: uuid.UUID,
-                      request: UserBase,
-                      db: AsyncSession = Depends(get_db),
-                      admin_user: User = Depends(get_current_admin_user)):
-    logger.info(f"Admin {admin_user.email} is updating user details for user_id: {user_id}")
-    return await UserService.update_user(user_id, request, db)
-
-@router.put("/update-user", response_model=UserResponse)
-async def update_current_user(request: UserBase,
-                              db: AsyncSession = Depends(get_db),
+@router.put("/update/user/current", response_model=StandardResponse[UserPrivateResponse])
+async def update_current_user(request: UserUpdate,
+                              user_service: UserService = Depends(get_user_service),
                               current_user: User = Depends(get_current_user)):
     logger.info(f"User {current_user.email} is updating their own details")
-    return await UserService.update_current_user(current_user, request, db)
+    response = await user_service.update_current_user(current_user, request)
+    return success_response("User updated successfully", response["user"])
 
-@router.delete("/delete-user")
-async def delete_user(db: AsyncSession = Depends(get_db),
-                      current_user: User = Depends(get_current_user)):
+@router.delete("/delete/user")
+async def delete_current_user(user_service: UserService = Depends(get_user_service),
+                              current_user: User = Depends(get_current_user)):
     logger.info(f"User {current_user.email} is deleting their own account")
-    return await UserService.delete_user(current_user, db)
+    response = await user_service.delete_current_user(current_user)
+    return success_response("User deleted successfully", response)
 
-@router.delete("/admin/delete-user/{user_id}")
-async def delete_specific_user(user_id: uuid.UUID,
-                               db: AsyncSession = Depends(get_db),
-                               admin_user: User = Depends(get_current_admin_user)):
-    logger.info(f"Admin {admin_user.email} is deleting user with user_id: {user_id}")
-    return await UserService.delete_specific_user(user_id, db)
+#-------------------------------------------
+# User enagement endpoints (follow/unfollow)
+#-------------------------------------------
+@router.post("/follow/user/{user_id}")
+async def follow_user(user_id: uuid.UUID,
+                      user_service: UserService = Depends(get_user_service),
+                      current_user: User = Depends(get_current_user)):
+    logger.info(f"User {current_user.email} is following user_id: {user_id}")
+    response = await user_service.follow_user(current_user.id, user_id)
+    return success_response("User followed successfully", response)
 
+@router.delete("/unfollow/user/{user_id}")
+async def unfollow_user(user_id: uuid.UUID,
+                        user_service: UserService = Depends(get_user_service),
+                        current_user: User = Depends(get_current_user)):
+    logger.info(f"User {current_user.email} is unfollowing user_id: {user_id}")
+    response = await user_service.unfollow_user(current_user.id, user_id)
+    return success_response("User unfollowed successfully", response)
+
+@router.get("/get/followers/current", response_model=StandardResponse[list[UserListResponse]])
+async def get_current_user_followers(user_service: UserService = Depends(get_user_service),
+                                     current_user: User = Depends(get_current_user)):
+    logger.info(f"User {current_user.email} is fetching their followers")
+    response = await user_service.get_followers(current_user.id)
+    return success_response("User followers fetched successfully", response)
+
+@router.get("/get/following/current", response_model=StandardResponse[list[UserListResponse]])
+async def get_current_user_following(user_service: UserService = Depends(get_user_service),
+                                     current_user: User = Depends(get_current_user)):
+    logger.info(f"User {current_user.email} is fetching their following")
+    response = await user_service.get_following(current_user.id)
+    return success_response("User following fetched successfully", response)
+
+#---------------------
+# Task Status Tracking
+#---------------------
+@router.get("/task/status/{task_id}", response_model=TaskStatusResponse)
+async def get_user_task_status(task_id: str = Path(..., description="The task ID to check status for")):
+    """Get the status of a user task (e.g., welcome email) by task ID."""
+    logger.info(f"Checking task status for: {task_id}")
+    return get_task_status(task_id)

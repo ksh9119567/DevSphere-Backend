@@ -1,4 +1,8 @@
- # Custom Exceptions for the application
+"""
+Custom Exceptions for the application
+
+This module defines custom exceptions for the Devsphere application.
+"""
  
 class DevsphereException(Exception):
      """Base class for all exceptions in the Devsphere application."""

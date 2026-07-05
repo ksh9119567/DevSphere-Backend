@@ -1,4 +1,9 @@
-# app/core/redis_manager.py
+"""
+Redis Manager Module
+
+This module sets up the Redis client and handles connection errors.
+"""
+
 import logging
 import redis.asyncio as redis
 import os
