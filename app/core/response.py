@@ -32,9 +32,10 @@ class ApiResponse(BaseModel):
 
 
 def success_response(
-    message: str,
-    data: Any = None,
-) -> dict:
+        message: str,
+        data: Any = None,
+    ) -> dict:
+    
     """
     Create a success response.
     
@@ -53,10 +54,10 @@ def success_response(
 
 
 def error_response(
-    message: str,
-    data: Any = None,
-    task_id: Optional[str] = None
-) -> dict:
+        message: str,
+        data: Any = None,
+        task_id: Optional[str] = None
+    ) -> dict:
     """
     Create an error response.
     

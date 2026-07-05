@@ -478,9 +478,13 @@ username=user@example.com&password=password123
 
 Response (200):
 {
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "token_type": "bearer"
+  "message": "Tokens generated successfully",
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "token_type": "bearer"
+  },
+  "status": "success"
 }
 ```
 
@@ -499,16 +503,17 @@ Content-Type: application/json
 
 Response (200):
 {
-  "user": {
+  "message": "User created successfully",
+  "data": {
     "id": "123e4567-e89b-12d3-a456-426614174000",
     "username": "john_doe",
     "email": "user@example.com",
     "is_admin": false,
-    "is_email_verified": false
+    "is_email_verified": false,
+    "created_at": "2024-03-24T10:30:00Z",
+    "updated_at": "2024-03-24T10:30:00Z"
   },
-  "access_token": "...",
-  "refresh_token": "...",
-  "token_type": "bearer"
+  "status": "success"
 }
 ```
 
@@ -521,9 +526,13 @@ refresh_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 Response (200):
 {
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "token_type": "bearer"
+  "message": "Tokens generated successfully",
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "token_type": "bearer"
+  },
+  "status": "success"
 }
 ```
 
@@ -534,7 +543,9 @@ Authorization: Bearer {access_token}
 
 Response (200):
 {
-  "message": "Logged out successfully"
+  "message": "Logged out successfully",
+  "data": null,
+  "status": "success"
 }
 ```
 

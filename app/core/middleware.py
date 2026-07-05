@@ -1,3 +1,9 @@
+"""
+Middleware to track user activities
+
+This module defines a middleware to track user activities.
+"""
+
 import logging
 import time
 import json
@@ -35,7 +41,10 @@ PUBLIC_ENDPOINTS = {
 class ActivityTrackingMiddleware(BaseHTTPMiddleware):
     """Middleware to track all user activities"""
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def dispatch(
+            self, request: Request, call_next: Callable
+        ) -> Response:
+        
         # Skip excluded endpoints
         if request.url.path in EXCLUDED_ENDPOINTS:
             return await call_next(request)
@@ -116,7 +125,9 @@ class ActivityTrackingMiddleware(BaseHTTPMiddleware):
 
         return response
 
-    async def _extract_user_email(self, request: Request) -> Optional[str]:
+    async def _extract_user_email(
+            self, request: Request
+        ) -> Optional[str]:
         
         """Extract user email from JWT token in request"""
         try:
@@ -138,8 +149,9 @@ class ActivityTrackingMiddleware(BaseHTTPMiddleware):
             return None
 
     async def _extract_user_email_from_body(
-        self, endpoint: str, request_body: Optional[str]
-    ) -> Optional[str]:
+            self, endpoint: str, request_body: Optional[str]
+        ) -> Optional[str]:
+        
         """Extract user email from request body for public endpoints"""
         if not request_body:
             return None
@@ -163,7 +175,10 @@ class ActivityTrackingMiddleware(BaseHTTPMiddleware):
         
         return None
 
-    def _get_client_ip(self, request: Request) -> str:
+    def _get_client_ip(
+            self, request: Request
+        ) -> str:
+        
         """Extract client IP address from request"""
         if request.client:
             return request.client.host
@@ -175,7 +190,10 @@ class ActivityTrackingMiddleware(BaseHTTPMiddleware):
         
         return "unknown"
 
-    def _get_action_description(self, method: str, endpoint: str) -> str:
+    def _get_action_description(
+            self, method: str, endpoint: str
+        ) -> str:
+        
         """Generate human-readable action description"""
         method_map = {
             "GET": "Retrieved",

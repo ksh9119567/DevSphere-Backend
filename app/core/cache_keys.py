@@ -26,6 +26,16 @@ class CacheKeys:
         return "blog:list:all"
 
     @staticmethod
+    def blog_likes(blog_id: Union[str, uuid.UUID]) -> str:
+        """Cache key for blog likes count. TTL: 5 minutes"""
+        return f"blog:{blog_id}:likes"
+
+    @staticmethod
+    def blog_bookmarks(blog_id: Union[str, uuid.UUID]) -> str:
+        """Cache key for blog bookmarks count. TTL: 5 minutes"""
+        return f"blog:{blog_id}:bookmarks"
+
+    @staticmethod
     def user_blogs_pattern(user_id: Union[str, uuid.UUID]) -> str:
         """Pattern for invalidating all user blog caches"""
         return f"user:{user_id}:blogs*"
@@ -34,6 +44,11 @@ class CacheKeys:
     def blog_list_pattern() -> str:
         """Pattern for invalidating all blog list caches"""
         return "blog:list:*"
+
+    @staticmethod
+    def blog_engagement_pattern(blog_id: Union[str, uuid.UUID]) -> str:
+        """Pattern for invalidating all blog engagement caches (likes, bookmarks)"""
+        return f"blog:{blog_id}:*"
 
     # ==================== USER CACHE KEYS ====================
     
@@ -58,6 +73,16 @@ class CacheKeys:
         return "user:list:non-admin"
 
     @staticmethod
+    def user_followers(user_id: Union[str, uuid.UUID]) -> str:
+        """Cache key for user's followers list. TTL: 5 minutes"""
+        return f"user:{user_id}:followers"
+
+    @staticmethod
+    def user_following(user_id: Union[str, uuid.UUID]) -> str:
+        """Cache key for users that a user is following. TTL: 5 minutes"""
+        return f"user:{user_id}:following"
+
+    @staticmethod
     def user_list_pattern() -> str:
         """Pattern for invalidating all user list caches"""
         return "user:list:*"
@@ -66,3 +91,8 @@ class CacheKeys:
     def user_by_email_pattern() -> str:
         """Pattern for invalidating user email caches"""
         return "user:email:*"
+
+    @staticmethod
+    def user_social_pattern(user_id: Union[str, uuid.UUID]) -> str:
+        """Pattern for invalidating user social caches (followers, following)"""
+        return f"user:{user_id}:*"

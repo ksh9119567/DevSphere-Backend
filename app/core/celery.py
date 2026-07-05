@@ -1,3 +1,11 @@
+"""
+Celery Configuration Module 
+
+This module sets up the Celery application and its configuration. 
+It imports necessary libraries and environment variables from the .env file.
+"""
+
+
 import os
 import logging
 

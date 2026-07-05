@@ -1,12 +1,12 @@
 from fastapi import Depends
 
 from .service import UserService
+from .repositories.user_repository import UserRepository
+from .repositories.cached_user_repository import CachedUserRepository
 
 from app.db.database import get_db
 from app.core.cache_manager import CacheManager
 from app.core.redis_manager import redis_client
-from app.core.repositories.user_repository import UserRepository
-from app.core.repositories.cached_user_repository import CachedUserRepository
 
 
 def get_cache_manager():

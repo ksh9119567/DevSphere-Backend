@@ -1,13 +1,13 @@
 from fastapi import Depends
 
 from .service import BlogService
+from .repositories.blog_repository import BlogRepository
+from .repositories.cached_blog_repository import CachedBlogRepository
 
 from app.db.database import get_db
 from app.core.cache_manager import CacheManager
 from app.core.redis_manager import redis_client
-from app.core.repositories.blog_repository import BlogRepository
-from app.core.repositories.user_repository import UserRepository
-from app.core.repositories.cached_blog_repository import CachedBlogRepository
+from app.modules.users.repositories.user_repository import UserRepository
 
 
 def get_cache_manager():

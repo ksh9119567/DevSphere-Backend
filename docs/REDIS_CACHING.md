@@ -67,12 +67,16 @@ app/
 - Single blog: `blog:{blog_id}` (10 min TTL)
 - User's blogs: `user:{user_id}:blogs` (5 min TTL)
 - All blogs: `blog:list:all` (5 min TTL)
+- Blog likes: `blog:{blog_id}:likes` (5 min TTL)
+- Blog bookmarks: `blog:{blog_id}:bookmarks` (5 min TTL)
 
 **Users**:
 - Single user: `user:{user_id}` (10 min TTL)
 - User by email: `user:email:{email}` (10 min TTL)
 - All users: `user:list:all` (5 min TTL)
 - Non-admin users: `user:list:non-admin` (5 min TTL)
+- User followers: `user:{user_id}:followers` (5 min TTL)
+- User following: `user:{user_id}:following` (5 min TTL)
 
 ---
 
@@ -111,11 +115,17 @@ Service.create/update/delete_*()
 - `BlogCreatedEvent` → Delete `blog:*`, `user:*:blogs`, `blog:list:*`
 - `BlogUpdatedEvent` → Delete `blog:*`, `user:*:blogs`, `blog:list:*`
 - `BlogDeletedEvent` → Delete `blog:*`, `user:*:blogs`, `blog:list:*`
+- `BlogLikeEvent` → Delete `blog:*`, `blog:*:likes`, `user:*:blogs`, `blog:list:*`
+- `BlogUnLikeEvent` → Delete `blog:*`, `blog:*:likes`, `user:*:blogs`, `blog:list:*`
+- `BlogBookmarkEvent` → Delete `blog:*`, `blog:*:bookmarks`, `user:*:blogs`, `blog:list:*`
+- `BlogUnBookmarkEvent` → Delete `blog:*`, `blog:*:bookmarks`, `user:*:blogs`, `blog:list:*`
 
 **User Events**:
-- `UserRegisteredEvent` → Delete `user:*`, `user:email:*`, `user:list:*`
-- `UserUpdatedEvent` → Delete `user:*`, `user:email:*`, `user:list:*`
-- `UserDeletedEvent` → Delete `user:*`, `user:email:*`, `user:list:*`
+- `UserRegisteredEvent` → Delete `user:*`, `user:email:*`, `user:list:*`, `user:*:followers`, `user:*:following`
+- `UserUpdatedEvent` → Delete `user:*`, `user:email:*`, `user:list:*`, `user:*:followers`, `user:*:following`
+- `UserDeletedEvent` → Delete `user:*`, `user:email:*`, `user:list:*`, `user:*:followers`, `user:*:following`
+- `UserFollowEvent` → Delete `user:*:following`, `user:*:followers`, `user:*`, `user:list:*`
+- `UserUnFollowEvent` → Delete `user:*:following`, `user:*:followers`, `user:*`, `user:list:*`
 
 ---
 
@@ -128,9 +138,13 @@ Service.create/update/delete_*()
 | GET /blogs/{id} | blog:{id} | 10 min | Single blog details |
 | GET /blogs/user/{id} | user:{id}:blogs | 5 min | User's blog list |
 | GET /blogs/admin/all | blog:list:all | 5 min | All blogs (admin) |
+| GET /blogs/{id}/likes | blog:{id}:likes | 5 min | Blog likes count |
+| GET /blogs/{id}/bookmarks | blog:{id}:bookmarks | 5 min | Blog bookmarks count |
 | GET /users/{id} | user:{id} | 10 min | Single user details |
 | GET /users/email/{email} | user:email:{email} | 10 min | User by email |
 | GET /users/admin/all | user:list:all | 5 min | All users (admin) |
+| GET /users/{id}/followers | user:{id}:followers | 5 min | User's followers list |
+| GET /users/{id}/following | user:{id}:following | 5 min | Users being followed |
 
 **Behavior**:
 - First request: Cache miss → DB query → Cache result
@@ -222,7 +236,8 @@ USER_LIST = 300     # 5 minutes
 **File**: `app/core/repositories/cached_blog_repository.py`
 
 Decorator pattern wrapping BlogRepository:
-- Read operations: Cached
+- Read operations: Cached (single blog, user blogs, all blogs)
+- Engagement operations: Cached (likes, bookmarks)
 - Write operations: Not cached
 - Transparent to services
 
@@ -230,7 +245,8 @@ Decorator pattern wrapping BlogRepository:
 **File**: `app/core/repositories/cached_user_repository.py`
 
 Decorator pattern wrapping UserRepository:
-- Read operations: Cached
+- Read operations: Cached (single user, user by email, all users)
+- Social operations: Cached (followers, following)
 - Write operations: Not cached
 - Transparent to services
 
@@ -246,7 +262,9 @@ Business logic with event dispatching:
 **Files**: `app/events/handlers/blog_cache_handler.py`, `app/events/handlers/user_cache_handler.py`
 
 Event-driven cache invalidation:
-- Listens for create/update/delete events
+- Blog handlers: `invalidate_blog_cache()`, `invalidate_blog_engagement_cache()`
+- User handlers: `invalidate_user_cache()`, `invalidate_user_follow_cache()`
+- Listens for create/update/delete/like/bookmark/follow events
 - Invalidates related caches
 - Decoupled from business logic
 
@@ -318,6 +336,22 @@ get_user_service()
 5. Dispatch BlogCreatedEvent
 6. invalidate_blog_cache()
    ├─ Delete blog:{id}
+   ├─ Delete blog:{id}:* (engagement caches)
+   ├─ Delete user:{user_id}:blogs
+   └─ Delete blog:list:*
+7. Return response
+```
+
+**Blog Like**:
+```
+1. POST /blogs/{id}/like
+2. BlogService.like_blog()
+3. CachedBlogRepository.like_blog()
+4. Write to Database
+5. Dispatch BlogLikeEvent
+6. invalidate_blog_engagement_cache()
+   ├─ Delete blog:{id}
+   ├─ Delete blog:{id}:* (likes, bookmarks)
    ├─ Delete user:{user_id}:blogs
    └─ Delete blog:list:*
 7. Return response
@@ -333,6 +367,23 @@ get_user_service()
 6. invalidate_user_cache()
    ├─ Delete user:{id}
    ├─ Delete user:email:{email}
+   ├─ Delete user:{id}:* (followers, following)
+   └─ Delete user:list:*
+7. Return response
+```
+
+**User Follow**:
+```
+1. POST /users/{id}/follow
+2. UserService.follow_user()
+3. CachedUserRepository.follow_user()
+4. Write to Database
+5. Dispatch UserFollowEvent
+6. invalidate_user_follow_cache()
+   ├─ Delete user:{follower_id}:following
+   ├─ Delete user:{following_id}:followers
+   ├─ Delete user:{follower_id}
+   ├─ Delete user:{following_id}
    └─ Delete user:list:*
 7. Return response
 ```
@@ -579,7 +630,7 @@ docker logs redis
 ## Summary
 
 ### What
-Redis caching layer for blogs and users with event-driven invalidation.
+Redis caching layer for blogs and users with event-driven invalidation for CRUD operations, engagement (likes/bookmarks), and social features (follow/unfollow).
 
 ### Where
 - Repositories: `app/core/repositories/cached_*.py`
@@ -588,24 +639,25 @@ Redis caching layer for blogs and users with event-driven invalidation.
 - Configuration: `app/core/cache_*.py`
 
 ### How
-Read-through cache pattern with decorator repositories and event-driven invalidation.
+Read-through cache pattern with decorator repositories and event-driven invalidation for all operations.
 
 ### When
-- **Cache used**: Read operations (GET)
-- **DB used**: Write operations (POST/PUT/DELETE)
+- **Cache used**: Read operations (GET) for blogs, users, engagement, and social data
+- **DB used**: Write operations (POST/PUT/DELETE) for all entities
 - **DB used**: If Redis fails
 
 ### Performance
 - 10-100x faster for cached reads
 - 80-90% reduction in database load
 - Graceful fallback if Redis fails
+- Automatic invalidation on all write operations
 
 ### Key Files
 - `app/core/cache_manager.py` - Redis operations
-- `app/core/cache_keys.py` - Key generation
+- `app/core/cache_keys.py` - Key generation (updated with engagement and social keys)
 - `app/core/cache_config.py` - TTL configuration
 - `app/core/repositories/cached_*.py` - Caching decorators
-- `app/events/handlers/*_cache_handler.py` - Invalidation
+- `app/events/handlers/*_cache_handler.py` - Invalidation (updated with engagement and follow handlers)
 - `app/modules/*/service.py` - Event dispatching
 - `app/modules/*/dependency.py` - Dependency injection
 
